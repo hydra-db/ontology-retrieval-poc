@@ -1,0 +1,13 @@
+[
+  {"query":"Who authored Linear ticket DEMO123?","route":"ontology","status":"ok","stores":["ontology"],"contains":"linear:person:ada"},
+  {"query":"Search provenance in DEMO-123","route":"graph_search","status":"ok","scope_prefix":"linear:","no_preferences":true},
+  {"query":"Search provenance in DEMO9999","route":"graph_search","status":"not_found","stores":["ontology"]},
+  {"query":"What is turbolay?","route":"personalized","status":"ok","contains":"linear:issue:issue-123","evidence":true},
+  {"query":"What is turbolay?","user":"bob","route":"semantic","no_preferences":true},
+  {"query":"Who authored DEMO123?","tenant":"another","route":"ontology","status":"not_found","stores":["ontology"]},
+  {"query":"Search hybrid retrieval","personalized":false,"route":"semantic","status":"ok","no_preference_store":true},
+  {"query":"Papers about memory","route":"semantic","status":"ok","all_kind":"Publication"},
+  {"query":"Who is Sam?","route":"ambiguous","status":"ambiguous","stores":[]},
+  {"query":"Delete DEMO-123","route":"unsupported","status":"unsupported","stores":[]},
+  {"query":"Search DEMO-123 DEMO-9999","route":"ambiguous","status":"ambiguous","stores":[]}
+]

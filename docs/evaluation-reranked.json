@@ -1,0 +1,294 @@
+{
+  "backend": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+  "python": "3.12.3",
+  "platform": "Linux-6.1.158+-x86_64-with-glibc2.39",
+  "cases": 30,
+  "correct": 27,
+  "accuracy": 0.9,
+  "corpus_sha256": "a08d51a4f01b68bbe92b3d02a5d062ab2e96c9c52a1188e06bb7b96e953dc86a",
+  "confusion": {
+    "ontology -> ontology": 4,
+    "ontology -> unsupported": 1,
+    "ontology -> ambiguous": 1,
+    "graph_search -> graph_search": 3,
+    "ambiguous -> ambiguous": 5,
+    "semantic -> semantic": 9,
+    "semantic -> unsupported": 1,
+    "unsupported -> unsupported": 6
+  },
+  "mistakes": [
+    {
+      "query": "Tell me who opened DEMO-123",
+      "route": "ontology",
+      "tag": "unseen",
+      "actual": "unsupported"
+    },
+    {
+      "query": "Who is the author of DEMO-123?",
+      "route": "ontology",
+      "tag": "unseen",
+      "actual": "ambiguous"
+    },
+    {
+      "query": "Show publications on user memory",
+      "route": "semantic",
+      "tag": "unseen",
+      "actual": "unsupported"
+    }
+  ],
+  "route_latency": {
+    "ontology": {
+      "first_query_ms": 0.2273,
+      "warm_median_ms": 0.02865,
+      "warm_p95_ms": 0.0385,
+      "stores": [
+        "ontology"
+      ]
+    },
+    "graph_search": {
+      "first_query_ms": 48.9004,
+      "warm_median_ms": 36.2633,
+      "warm_p95_ms": 39.4238,
+      "stores": [
+        "ontology",
+        "vector"
+      ]
+    },
+    "semantic": {
+      "first_query_ms": 96.096,
+      "warm_median_ms": 94.29485,
+      "warm_p95_ms": 99.1948,
+      "stores": [
+        "preferences",
+        "vector"
+      ]
+    },
+    "personalized": {
+      "first_query_ms": 87.3039,
+      "warm_median_ms": 93.24655,
+      "warm_p95_ms": 98.0457,
+      "stores": [
+        "preferences",
+        "vector"
+      ]
+    }
+  },
+  "repeats": 20,
+  "network_calls": 0,
+  "generative_calls": 0,
+  "retrieval_cases": [
+    {
+      "case": {
+        "query": "Who authored Linear ticket DEMO123?",
+        "route": "ontology",
+        "status": "ok",
+        "stores": [
+          "ontology"
+        ],
+        "contains": "linear:person:ada"
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "stores": true,
+        "contains": true
+      }
+    },
+    {
+      "case": {
+        "query": "Search provenance in DEMO-123",
+        "route": "graph_search",
+        "status": "ok",
+        "scope_prefix": "linear:",
+        "no_preferences": true
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "scope": true,
+        "no_preferences": true
+      }
+    },
+    {
+      "case": {
+        "query": "Search provenance in DEMO9999",
+        "route": "graph_search",
+        "status": "not_found",
+        "stores": [
+          "ontology"
+        ]
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "stores": true
+      }
+    },
+    {
+      "case": {
+        "query": "What is turbolay?",
+        "route": "personalized",
+        "status": "ok",
+        "contains": "linear:issue:issue-123",
+        "evidence": true
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "contains": true,
+        "evidence": true
+      }
+    },
+    {
+      "case": {
+        "query": "What is turbolay?",
+        "user": "bob",
+        "route": "semantic",
+        "no_preferences": true
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "no_preferences": true
+      }
+    },
+    {
+      "case": {
+        "query": "Who authored DEMO123?",
+        "tenant": "another",
+        "route": "ontology",
+        "status": "not_found",
+        "stores": [
+          "ontology"
+        ]
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "stores": true
+      }
+    },
+    {
+      "case": {
+        "query": "Search hybrid retrieval",
+        "personalized": false,
+        "route": "semantic",
+        "status": "ok",
+        "no_preference_store": true
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "no_preference_store": true
+      }
+    },
+    {
+      "case": {
+        "query": "Papers about memory",
+        "route": "semantic",
+        "status": "ok",
+        "all_kind": "Publication"
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "kind": true
+      }
+    },
+    {
+      "case": {
+        "query": "Who is Sam?",
+        "route": "ambiguous",
+        "status": "ambiguous",
+        "stores": []
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "stores": true
+      }
+    },
+    {
+      "case": {
+        "query": "Delete DEMO-123",
+        "route": "unsupported",
+        "status": "unsupported",
+        "stores": []
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "stores": true
+      }
+    },
+    {
+      "case": {
+        "query": "Search DEMO-123 DEMO-9999",
+        "route": "ambiguous",
+        "status": "ambiguous",
+        "stores": []
+      },
+      "passed": true,
+      "checks": {
+        "route": true,
+        "status": true,
+        "stores": true
+      }
+    }
+  ],
+  "retrieval_passed": 11,
+  "limits": "Hand-authored synthetic routing holdout, not independent production evidence. No learned router or tuning after evaluation. First query excludes imports, model loading, ingestion, OS cold cache; CLI reports initialization separately.",
+  "initialization_ms": 2129.5242,
+  "process_cold_samples": {
+    "ontology": [
+      {
+        "wall_ms": 62.068,
+        "initialization_ms": 1.5562,
+        "query_ms": 0.2024
+      },
+      {
+        "wall_ms": 52.664,
+        "initialization_ms": 1.1592,
+        "query_ms": 0.1531
+      },
+      {
+        "wall_ms": 56.112,
+        "initialization_ms": 1.3159,
+        "query_ms": 0.1948
+      }
+    ],
+    "personalized": [
+      {
+        "wall_ms": 2907.383,
+        "initialization_ms": 2151.5287,
+        "query_ms": 88.9103
+      },
+      {
+        "wall_ms": 2657.679,
+        "initialization_ms": 1922.5895,
+        "query_ms": 86.3082
+      },
+      {
+        "wall_ms": 2622.717,
+        "initialization_ms": 1890.0177,
+        "query_ms": 84.992
+      }
+    ]
+  },
+  "fixture_setup": {
+    "learned": 1,
+    "mode": "explicit deterministic fixture extraction, not LLM",
+    "initialization_ms": 2119.0678
+  },
+  "cpu_threads": 1,
+  "cold_definition": "Fresh interpreter and model objects, same host and existing downloaded files. OS filesystem/page caches not flushed; not machine-cold or network time. Authorship bypass skips model loading."
+}

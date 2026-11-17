@@ -1,0 +1,324 @@
+[
+  {
+    "status": "ok",
+    "route": "ontology",
+    "stores": [
+      "ontology"
+    ],
+    "results": [
+      {
+        "node_id": "linear:person:ada",
+        "kind": "Person",
+        "text": "Ada Example",
+        "url": "",
+        "evidence_node_id": "linear:issue:issue-123",
+        "evidence_url": "https://example.invalid/linear/DEMO-123",
+        "relation": "AUTHORED_BY"
+      }
+    ],
+    "trace": [
+      {
+        "route": "ontology",
+        "confidence": 1,
+        "reason": "fixed authored-by template",
+        "identifier": "DEMO-123",
+        "kind": null
+      }
+    ],
+    "latency_ms": 0.6316,
+    "search_backend": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "network_calls": 0,
+    "generative_calls": 0
+  },
+  {
+    "status": "ok",
+    "route": "graph_search",
+    "stores": [
+      "ontology",
+      "vector"
+    ],
+    "results": [
+      {
+        "node_id": "linear:comment:comment-1",
+        "chunk_id": "950bc84afa30309619998da3e7a7009e5e5776686e0ca9668e89ec87b620ff0e",
+        "kind": "Comment",
+        "text": "Hybrid search should preserve provenance and isolate each user.",
+        "title": "",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 63,
+        "score": 0.506252,
+        "reranker_score": -3.233511209487915
+      },
+      {
+        "node_id": "linear:issue:issue-123",
+        "chunk_id": "48cc9d98d3fd6ac2fcbdac4a3007def4724d20d7b0d82ddb59f31f3625e14e3c",
+        "kind": "Issue",
+        "text": "HydraDB combines a typed ontology with semantic retrieval. Customer requirements need grounded source citations.",
+        "title": "HydraDB retrieval experiment",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 112,
+        "score": 0.241106,
+        "reranker_score": -11.454450607299805
+      },
+      {
+        "node_id": "linear:comment:reply-1",
+        "chunk_id": "6545c1bb8b791a200898cc9ae46f5ab41b1156ec089230050c65e1d163aba703",
+        "kind": "CommentReply",
+        "text": "Agreed. Ontology authorship questions must bypass the preference and vector stores.",
+        "title": "",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 83,
+        "score": 0.105181,
+        "reranker_score": -11.472350120544434
+      }
+    ],
+    "trace": [
+      {
+        "route": "graph_search",
+        "confidence": 0.98,
+        "reason": "explicit issue scope; fixed bounded descendants",
+        "identifier": "DEMO-123",
+        "kind": null
+      },
+      {
+        "template": "issue_descendants_depth_3",
+        "scope_nodes": 3,
+        "hybrid_weights": [
+          0.75,
+          0.25
+        ]
+      },
+      {
+        "reranked": 3,
+        "model": "local_cross_encoder"
+      }
+    ],
+    "latency_ms": 39.8921,
+    "search_backend": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "network_calls": 0,
+    "generative_calls": 0
+  },
+  {
+    "status": "ok",
+    "route": "personalized",
+    "stores": [
+      "preferences",
+      "vector"
+    ],
+    "results": [
+      {
+        "node_id": "linear:issue:issue-123",
+        "chunk_id": "48cc9d98d3fd6ac2fcbdac4a3007def4724d20d7b0d82ddb59f31f3625e14e3c",
+        "kind": "Issue",
+        "text": "HydraDB combines a typed ontology with semantic retrieval. Customer requirements need grounded source citations.",
+        "title": "HydraDB retrieval experiment",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 112,
+        "score": 0.53634,
+        "reranker_score": 6.994046211242676
+      },
+      {
+        "node_id": "arxiv:publication:synthetic-001",
+        "chunk_id": "95ef86078f456019286edb232c6070d866c0cf3a52908f1562835f4e510e2ac7",
+        "kind": "Publication",
+        "text": "This fictional fixture discusses preference memory, user isolation, hybrid search and evaluation. It is not a real publication or research finding.",
+        "title": "Synthetic study of retrieval memory",
+        "url": "https://example.invalid/papers/synthetic-001",
+        "start": 0,
+        "end": 147,
+        "score": 0.137235,
+        "reranker_score": -10.272157669067383
+      },
+      {
+        "node_id": "arxiv:publication:synthetic-002",
+        "chunk_id": "48d37fb5b550c8e85934dbf65cb521f4f0788426c003063502e7de43d820d818",
+        "kind": "Publication",
+        "text": "This fictional fixture studies fixed retrieval templates and non-generative ontology routing. It reports no empirical results.",
+        "title": "Synthetic ontology routing study",
+        "url": "https://example.invalid/papers/synthetic-002",
+        "start": 0,
+        "end": 126,
+        "score": 0.084518,
+        "reranker_score": -10.699132919311523
+      },
+      {
+        "node_id": "linear:comment:comment-1",
+        "chunk_id": "950bc84afa30309619998da3e7a7009e5e5776686e0ca9668e89ec87b620ff0e",
+        "kind": "Comment",
+        "text": "Hybrid search should preserve provenance and isolate each user.",
+        "title": "",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 63,
+        "score": 0.170849,
+        "reranker_score": -11.228084564208984
+      },
+      {
+        "node_id": "linear:comment:reply-1",
+        "chunk_id": "6545c1bb8b791a200898cc9ae46f5ab41b1156ec089230050c65e1d163aba703",
+        "kind": "CommentReply",
+        "text": "Agreed. Ontology authorship questions must bypass the preference and vector stores.",
+        "title": "",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 83,
+        "score": 0.076593,
+        "reranker_score": -11.309403419494629
+      }
+    ],
+    "trace": [
+      {
+        "route": "semantic",
+        "confidence": 0.9,
+        "reason": "bounded content search",
+        "identifier": null,
+        "kind": null
+      },
+      {
+        "preferences": [
+          {
+            "id": "f29dfbb10d01a2291181634939d0074e207e051594c4db30fa56458ecaed7106",
+            "key": "turbolay",
+            "value": "hydradb",
+            "quote": "I use turbolay to mean hydradb.",
+            "turn_id": "session-1:turn-1",
+            "confidence": 1.0
+          }
+        ],
+        "fallback": null
+      },
+      {
+        "expanded_query": "What is hydradb?",
+        "candidate_limit": 20,
+        "kind_filter": null
+      },
+      {
+        "reranked": 9,
+        "model": "local_cross_encoder"
+      }
+    ],
+    "latency_ms": 80.8722,
+    "search_backend": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "network_calls": 0,
+    "generative_calls": 0
+  },
+  {
+    "status": "ok",
+    "route": "semantic",
+    "stores": [
+      "preferences",
+      "vector"
+    ],
+    "results": [
+      {
+        "node_id": "arxiv:publication:synthetic-001",
+        "chunk_id": "95ef86078f456019286edb232c6070d866c0cf3a52908f1562835f4e510e2ac7",
+        "kind": "Publication",
+        "text": "This fictional fixture discusses preference memory, user isolation, hybrid search and evaluation. It is not a real publication or research finding.",
+        "title": "Synthetic study of retrieval memory",
+        "url": "https://example.invalid/papers/synthetic-001",
+        "start": 0,
+        "end": 147,
+        "score": 0.096041,
+        "reranker_score": -10.969664573669434
+      },
+      {
+        "node_id": "arxiv:publication:synthetic-002",
+        "chunk_id": "48d37fb5b550c8e85934dbf65cb521f4f0788426c003063502e7de43d820d818",
+        "kind": "Publication",
+        "text": "This fictional fixture studies fixed retrieval templates and non-generative ontology routing. It reports no empirical results.",
+        "title": "Synthetic ontology routing study",
+        "url": "https://example.invalid/papers/synthetic-002",
+        "start": 0,
+        "end": 126,
+        "score": 0.118925,
+        "reranker_score": -11.281900405883789
+      },
+      {
+        "node_id": "linear:issue:issue-123",
+        "chunk_id": "48cc9d98d3fd6ac2fcbdac4a3007def4724d20d7b0d82ddb59f31f3625e14e3c",
+        "kind": "Issue",
+        "text": "HydraDB combines a typed ontology with semantic retrieval. Customer requirements need grounded source citations.",
+        "title": "HydraDB retrieval experiment",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 112,
+        "score": 0.027968,
+        "reranker_score": -11.31305980682373
+      },
+      {
+        "node_id": "linear:comment:comment-1",
+        "chunk_id": "950bc84afa30309619998da3e7a7009e5e5776686e0ca9668e89ec87b620ff0e",
+        "kind": "Comment",
+        "text": "Hybrid search should preserve provenance and isolate each user.",
+        "title": "",
+        "url": "https://example.invalid/linear/DEMO-123",
+        "start": 0,
+        "end": 63,
+        "score": 0.014069,
+        "reranker_score": -11.31357479095459
+      },
+      {
+        "node_id": "github:comment:pr-comment-1",
+        "chunk_id": "60ed7d6517d2a6a58b5b5cdf33946bf01f814cf5ca40571554eb7aa46b087853",
+        "kind": "Comment",
+        "text": "Keep complete text chunks linked to stable source IDs.",
+        "title": "",
+        "url": "https://example.invalid/github/pull/7",
+        "start": 0,
+        "end": 54,
+        "score": 0.040706,
+        "reranker_score": -11.358078956604004
+      }
+    ],
+    "trace": [
+      {
+        "route": "semantic",
+        "confidence": 0.9,
+        "reason": "bounded content search",
+        "identifier": null,
+        "kind": null
+      },
+      {
+        "preferences": [],
+        "fallback": "unpersonalized"
+      },
+      {
+        "expanded_query": "What is turbolay?",
+        "candidate_limit": 20,
+        "kind_filter": null
+      },
+      {
+        "reranked": 8,
+        "model": "local_cross_encoder"
+      }
+    ],
+    "latency_ms": 70.6597,
+    "search_backend": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "network_calls": 0,
+    "generative_calls": 0
+  },
+  {
+    "status": "ambiguous",
+    "route": "ambiguous",
+    "stores": [],
+    "results": [],
+    "trace": [
+      {
+        "route": "ambiguous",
+        "confidence": 1,
+        "reason": "unsupported relation or unresolved person; ask for explicit ID",
+        "identifier": null,
+        "kind": null
+      }
+    ],
+    "latency_ms": 0.0367,
+    "search_backend": "sentence-transformers/all-MiniLM-L6-v2@1110a243fdf4706b3f48f1d95db1a4f5529b4d41",
+    "network_calls": 0,
+    "generative_calls": 0
+  }
+]
