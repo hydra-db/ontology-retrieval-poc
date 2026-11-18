@@ -69,6 +69,10 @@ export ORP_ANALYZER_MODEL=Qwen/Qwen3.6-35B-A3B
 
 `orp dream` picks sessions that have new events and have been quiet for the given minutes. A session whose analyzer fails is picked up again on the next run.
 
+## Trial run
+
+`examples/make_sessions.py` writes five synthetic sessions and lists what a good run should produce from them. Against `Qwen/Qwen3.6-35B-A3B` on vLLM 0.34.0 (one 96 GB GPU, `--max-num-seqs 64`, `--tool-call-parser qwen3_coder`, `--reasoning-parser qwen3`) one dream over them took about 30 seconds and produced every expected snippet: seven in force, the old meaning of "shipped" superseded, the duplicate alias merged, and nothing from the session that contains a planted instruction and an API key. This is one run on made-up data, not an eval.
+
 ## Open
 
 - Evals for snippet quality and for whether snippets help retrieval.
