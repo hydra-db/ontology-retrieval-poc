@@ -182,6 +182,9 @@ def _check_value(field: str, op: str, value: Any) -> Any:
     if value is None or value == "" or value == []:
         raise ValueError("a constraint needs a value")
     if op == "within_days":
+        # Models often send the number as text ("14"); accept that.
+        if isinstance(value, str) and value.strip().replace(".", "", 1).isdigit():
+            value = float(value)
         if isinstance(value, bool) or not isinstance(value, (int, float)) or value <= 0:
             raise ValueError("value for within_days must be a positive number of days")
         return int(value)

@@ -31,6 +31,9 @@ class AgentResult:
     tool_calls: list[dict] = field(default_factory=list)
 
 
+MAX_SAME_FAILURE = 4
+
+
 class ToolError(Exception):
     """Raised by a tool to hand the model a message it can act on."""
 
@@ -45,6 +48,7 @@ def run_agent(llm: LLM, system: str, task: str, tools: list[Tool], max_turns: in
     specs = [t.spec() for t in tools]
     messages: list[dict] = [{"role": "system", "content": system}, {"role": "user", "content": task}]
     log: list[dict] = []
+    failed: dict[str, int] = {}  # identical failing call -> times sent
 
     for turn in range(1, max_turns + 1):
         msg = llm.chat(messages, specs)
@@ -86,6 +90,17 @@ def run_agent(llm: LLM, system: str, task: str, tools: list[Tool], max_turns: in
                     except TypeError as exc:
                         out, ok = f"ERROR: wrong arguments for {name}: {exc}", False
             log.append({"tool": name, "args": args, "ok": ok})
+            if not ok:
+                key = name + json.dumps(args, sort_keys=True, ensure_ascii=False)
+                failed[key] = failed.get(key, 0) + 1
+                if failed[key] == 2:
+                    out += (
+                        " You sent exactly this call before and it failed the same way. "
+                        "Change the arguments the error names, or leave this item out."
+                    )
+                elif failed[key] >= MAX_SAME_FAILURE:
+                    # The model is stuck resending one call; stop instead of burning turns.
+                    return AgentResult(False, {"stuck_on": name, "error": out}, turn, log)
             messages.append({"role": "tool", "tool_call_id": call.get("id", name), "content": out})
 
     return AgentResult(False, {}, max_turns, log)

@@ -74,7 +74,11 @@ def analyze_session(
         return {
             "input": session_id,
             "ok": False,
-            "reason": f"analyzer did not finish within {max_turns} turns",
+            "reason": (
+                f"analyzer kept resending a failing {result.result['stuck_on']} call: {result.result['error'][:200]}"
+                if result.result.get("stuck_on")
+                else f"analyzer did not finish within {max_turns} turns"
+            ),
             "written": tools.written,
         }
     return {

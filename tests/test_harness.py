@@ -81,6 +81,16 @@ def test_run_agent_feeds_errors_back_and_stops_on_finish():
     assert last[-1]["role"] == "user" and "call finish" in last[-1]["content"]
 
 
+def test_run_agent_stops_when_stuck_on_one_failing_call():
+    def boom(**_):
+        raise ToolError("bad input")
+
+    llm = Scripted([[call("boom", x=1)] for _ in range(10)])
+    result = run_agent(llm, "sys", "task", [Tool("boom", "", {"type": "object", "properties": {}}, boom)])
+    assert result.finished is False and result.turns == 4 and result.result["stuck_on"] == "boom"
+    assert "exactly this call before" in llm.seen[2][-1]["content"]
+
+
 def test_run_agent_gives_up_after_max_turns():
     llm = Scripted([[] for _ in range(3)])
     assert run_agent(llm, "sys", "task", [], max_turns=3).finished is False
