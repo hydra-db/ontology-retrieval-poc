@@ -40,7 +40,7 @@ The fields a constraint may use:
 
 {field_guide}
 
-If a durable search preference fits neither kind, or needs a field that is not listed, record it with `add_unmapped`. Do not bend it into a snippet.
+If a durable preference about where to look or what to trust fits neither kind, or needs a field or a value that is not listed, record it with `add_unmapped`. Do not bend it into a snippet, and do not drop it. For example, "use incident.io as the source of truth for shift timings" names a source that is not in the list above, so it is an unmapped note. People review these notes to decide which fields to add.
 
 ## Trigger terms
 

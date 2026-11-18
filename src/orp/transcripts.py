@@ -138,23 +138,65 @@ def _split_long(block: str, page_chars: int) -> list[str]:
 
 
 def render_events(
-    events: list[dict], client: str = "claude-code", max_tool_chars: int = 4000, start: int = 0
+    events: list[dict],
+    client: str = "claude-code",
+    max_tool_chars: int = 4000,
+    start: int = 0,
+    limits: dict[str, int] | None = None,
+    collapse_tools: bool = False,
 ) -> str:
     """Turn raw events into labelled plain text, one block per item, in order.
 
     `start` renders only events[start:], while tool names are still looked up
     across the whole list, so a tool result whose call came earlier keeps its name.
+
+    `limits` shortens whole blocks by label, for a reader that only needs the
+    gist of some kinds of block: {"AGENT": 800} keeps the first and last 400
+    characters of each agent message, and a limit of 0 drops that kind of block.
+    A label matches the longest key it starts with ("TOOL RESULT (Bash)" matches
+    "TOOL RESULT"). USER blocks are never shortened or dropped.
+
+    `collapse_tools` replaces each unbroken run of tool calls and results with
+    one line naming the tools and how often each was called, e.g.
+    "TOOLS USED: Bash x12, Read x5".
     """
     render = _render_claude_code if client == "claude-code" else None
     ctx = _Context(events if render else [], max_tool_chars)
+    keys = sorted(limits or {}, key=len, reverse=True)
     blocks: list[str] = []
+    run: dict[str, int] = {}  # tool name -> calls in the current run of tool blocks
+    run_prefix = ""
+
+    def flush_run() -> None:
+        if run:
+            blocks.append(run_prefix + "TOOLS USED: " + ", ".join(f"{name} x{n}" for name, n in run.items()))
+            run.clear()
+
     for event in (events or [])[start:]:
         try:
             parts = render(event, ctx) if render else [_fallback(event, ctx)]
         except Exception:
             parts = [_fallback(event, ctx)]  # unexpected shape: never raise
         prefix = _timestamp_prefix(event)
-        blocks.extend(prefix + label + ":" + (" " + body if body else "") for label, body in parts)
+        for label, body in parts:
+            if collapse_tools and label.startswith(("TOOL CALL", "TOOL RESULT")):
+                if label.startswith("TOOL CALL"):
+                    if not run:
+                        run_prefix = prefix
+                    name = label[len("TOOL CALL") :].strip() or "unknown"
+                    run[name] = run.get(name, 0) + 1
+                continue
+            flush_run()
+            key = None if label == "USER" else next((k for k in keys if label.startswith(k)), None)
+            if key is not None:
+                limit = limits[key]  # type: ignore[index]
+                if limit <= 0:
+                    continue
+                if len(body) > limit:
+                    half = max(1, limit // 2)
+                    body = body[:half] + "\n" + OMIT_TEMPLATE.format(n=len(body) - 2 * half) + "\n" + body[-half:]
+            blocks.append(prefix + label + ":" + (" " + body if body else ""))
+    flush_run()
     return "\n\n".join(blocks)
 
 
