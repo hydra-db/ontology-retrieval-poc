@@ -89,7 +89,7 @@ def run_agent(llm: LLM, system: str, task: str, tools: list[Tool], max_turns: in
                         out, ok = f"ERROR: {exc}", False
                     except TypeError as exc:
                         out, ok = f"ERROR: wrong arguments for {name}: {exc}", False
-            log.append({"tool": name, "args": args, "ok": ok})
+            log.append({"tool": name, "args": args, "ok": ok, **({} if ok else {"error": out})})
             if not ok:
                 key = name + json.dumps(args, sort_keys=True, ensure_ascii=False)
                 failed[key] = failed.get(key, 0) + 1

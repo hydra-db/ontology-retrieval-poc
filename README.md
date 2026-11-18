@@ -50,24 +50,27 @@ A durable preference that fits neither kind goes to a separate `unmapped` list, 
 ```bash
 uv venv && uv pip install -e ".[dev]"
 .venv/bin/pytest
+cp .env.example .env                 # then fill in the model endpoint
 
-.venv/bin/orp user add <name>        # prints the API key once
+.venv/bin/orp user add <name>        # prints the API key once; save it to ~/.orp/key
 .venv/bin/orp serve                  # http://127.0.0.1:8765
+.venv/bin/orp doctor --user <name>   # checks every part needed for a test
 ```
 
-Send transcripts: see `hooks/README.md`.
+`TESTING.md` walks through a full test: getting transcripts in, dreaming, reading the result and running it again.
 
-Dream (needs a model endpoint):
+| Command | What it does |
+|---|---|
+| `orp doctor` | checks the database, API, key, hook and model endpoint |
+| `orp backfill --user N` | uploads past Claude Code sessions from this machine |
+| `orp status --user N` | sessions received and what is waiting to be dreamed over |
+| `orp dream --user N` | runs the harness; `--session`, `--limit` and `--quiet-minutes` narrow it |
+| `orp snippets --user N` | shows the snippets; `--evidence` adds the quotes |
+| `orp runs --user N` | shows what the last dream did, step by step |
+| `orp render --user N --session ID` | prints a stored session as text |
+| `orp reset --user N --yes` | forgets what was learned for a user; transcripts are kept |
 
-```bash
-export ORP_LLM_BASE_URL=https://<pod-id>-8000.proxy.runpod.net/v1
-export ORP_LLM_API_KEY=...
-export ORP_ANALYZER_MODEL=Qwen/Qwen3.6-35B-A3B
-.venv/bin/orp dream --user <name> --quiet-minutes 30
-.venv/bin/orp snippets --user <name>
-```
-
-`orp dream` picks sessions that have new events and have been quiet for the given minutes. A session whose analyzer fails is picked up again on the next run.
+`orp dream` picks sessions that have new events and have been quiet for the given minutes. A session whose analyzer fails is picked up again on the next run. A long session is read in several analyzer runs of six pages each.
 
 ## Trial run
 

@@ -303,3 +303,44 @@ def test_normalize_ws():
     quote = "keep   answers\nshort"
     rendered = render_events([user("Please keep answers\n   short from now on")])
     assert normalize_ws(quote) in normalize_ws(rendered)
+
+
+def test_limits_shorten_and_drop_by_label_but_never_user():
+    from orp.transcripts import render_events
+
+    long = "x" * 3000
+    events = [
+        {"type": "user", "message": {"role": "user", "content": long}},
+        {"type": "assistant", "message": {"role": "assistant", "content": [
+            {"type": "thinking", "thinking": "private reasoning"},
+            {"type": "text", "text": "START " + long + " END"},
+            {"type": "tool_use", "id": "t1", "name": "Bash", "input": {"command": "ls"}},
+        ]}},
+        {"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t1", "content": "r" * 2000}]}},
+    ]
+    text = render_events(events, limits={"AGENT THINKING": 0, "AGENT": 100, "TOOL RESULT": 50})
+    assert "USER: " + long in text
+    assert "private reasoning" not in text and "AGENT THINKING" not in text
+    agent = next(b for b in text.split("\n\n") if b.startswith("AGENT:"))
+    assert agent.startswith("AGENT: START ") and agent.endswith(" END") and "chars omitted" in agent and len(agent) < 250
+    result = next(b for b in text.split("\n\n") if b.startswith("TOOL RESULT (Bash):"))
+    assert len(result) < 150 and "TOOL CALL Bash" in text
+    assert render_events(events) == render_events(events, limits=None) and long in render_events(events).split("AGENT:")[1]
+
+
+def test_collapse_tools_makes_one_line_per_run():
+    from orp.transcripts import render_events
+
+    def use(i, name):
+        return [
+            {"type": "assistant", "timestamp": "2026-11-17T10:00:00Z", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": f"t{i}", "name": name, "input": {"n": i}}]}},
+            {"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": f"t{i}", "content": "secret tool output"}]}},
+        ]
+
+    events = [{"type": "user", "message": {"role": "user", "content": "go"}}]
+    events += use(1, "Bash") + use(2, "Read") + use(3, "Bash")
+    events += [{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "done"}]}}]
+    events += use(4, "Edit")
+    blocks = render_events(events, collapse_tools=True).split("\n\n")
+    assert blocks == ["USER: go", "[2026-11-17T10:00:00Z] TOOLS USED: Bash x2, Read x1", "AGENT: done", "[2026-11-17T10:00:00Z] TOOLS USED: Edit x1"]
+    assert "TOOL CALL Bash" in render_events(events) and "secret tool output" in render_events(events)

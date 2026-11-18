@@ -251,3 +251,61 @@ def test_dream_end_to_end(store, uid):
 def test_dream_with_nothing_ready(store, uid):
     report = dream(store, uid, None, None)
     assert report["inputs_expected"] == 0 and report["organized"] is False and report["failures"] == []
+
+
+def test_long_session_is_read_in_parts(store, uid, monkeypatch):
+    from orp.harness import lead
+
+    monkeypatch.setattr(lead, "PAGE_CHARS", 400)
+    monkeypatch.setattr(lead, "PAGES_PER_RUN", 2)
+    events = [user_event(f"message number {i}. " + FILLER) for i in range(12)]
+    events.append(user_event("btw turbolay and hydradb are the same thing"))
+    store.append_events(uid, "long", "claude-code", 0, events)
+    seen_tasks, pages_read = [], []
+
+    class Model:
+        def chat(self, messages, tools):
+            results = [m["content"] for m in messages if m["role"] == "tool"]
+            total = int(messages[1]["content"].split("(")[1].split(" page")[0])
+            if len(results) == 0:
+                seen_tasks.append(messages[1]["content"])
+            if len(results) < total:
+                return {"tool_calls": [call("read_transcript", page=len(results) + 1)]}
+            text = " ".join(results)
+            pages_read.append(total)
+            if "turbolay" in text and len(results) == total:
+                return {"tool_calls": [call("add_snippet", **ALIAS, quotes=[{"quote": "turbolay and hydradb are the same thing"}])]}
+            return {"tool_calls": [call("finish", summary=f"part done")]}
+
+    res = analyze_session(store, Model(), uid, store.get_session(uid, "long"))
+    assert res["ok"] and res["pages"] > 2 and len(seen_tasks) == -(-res["pages"] // 2)
+    assert "part 1 of" in seen_tasks[0] and all(n <= 2 for n in pages_read)
+    assert len(res["written"]) == 1
+    assert [t["tool"] for t in res["trace"] if t["tool"] == "add_snippet"] == ["add_snippet"]
+    assert res["trace"][-1]["tool"] == "finish"
+
+
+def test_dream_only_sessions_and_limit(store, uid):
+    for name in ("a", "b", "c"):
+        seed(store, uid, name, ["nothing"])
+    store.append_events(uid, "a:sub", "claude-code", 0, [user_event(FILLER)], meta={"parent_session_id": "a"})
+
+    class Model:
+        def chat(self, messages, tools):
+            return {"tool_calls": [call("finish", summary="nothing")]}
+
+    r = dream(store, uid, Model(), Model(), quiet_minutes=-1, only_sessions=["b"])
+    assert [a["input"] for a in r["analyzers"]] == ["b"]
+    r = dream(store, uid, Model(), Model(), quiet_minutes=-1, limit=1)
+    real = [a["input"] for a in r["analyzers"] if not a.get("skipped")]
+    assert len(real) == 1 and r["inputs_expected"] == 2  # one real session plus the subagent transcript
+    assert len(store.sessions_to_dream(uid, "2999-01-01T00:00:00Z")) == 1
+
+
+def test_failure_keeps_trace_with_error(store, uid):
+    session = seed(store, uid, "s1", ["by shipped I mean it's On main"])
+    bad = dict(SHIPPED, field="status")
+    llm = Scripted([[call("add_snippet", **bad, quotes=[{"quote": "by shipped I mean it's On main"}])] for _ in range(6)])
+    res = analyze_session(store, llm, uid, session)
+    assert not res["ok"] and "kept resending a failing add_snippet" in res["reason"]
+    assert res["trace"][0]["ok"] is False and "field must be one of" in res["trace"][0]["error"]

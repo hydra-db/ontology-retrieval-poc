@@ -323,6 +323,29 @@ class Store:
             rows = self._db.execute("SELECT * FROM unmapped WHERE user_id=? ORDER BY created_at", (user_id,)).fetchall()
         return [{**dict(r), "evidence": json.loads(r["evidence"])} for r in rows]
 
+    def reset_learning(self, user_id: str) -> dict:
+        """Testing helper: forget everything learned for a user, keep the transcripts.
+
+        Deletes the user's snippets, unmapped notes and run reports, and marks
+        every session as not yet dreamed over, so the next dream starts clean.
+        """
+        with self._lock:
+            self._db.execute("BEGIN")
+            try:
+                counts = {
+                    "snippets": self._db.execute("DELETE FROM snippets WHERE user_id=?", (user_id,)).rowcount,
+                    "unmapped": self._db.execute("DELETE FROM unmapped WHERE user_id=?", (user_id,)).rowcount,
+                    "runs": self._db.execute("DELETE FROM runs WHERE user_id=?", (user_id,)).rowcount,
+                    "sessions": self._db.execute(
+                        "UPDATE sessions SET dreamed_offset=0 WHERE user_id=?", (user_id,)
+                    ).rowcount,
+                }
+                self._db.execute("COMMIT")
+            except Exception:
+                self._db.execute("ROLLBACK")
+                raise
+        return counts
+
     # ---- runs -----------------------------------------------------------
 
     def start_run(self, user_id: str) -> str:
